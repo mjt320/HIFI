@@ -1,0 +1,6 @@
+HIFI_3a
+-------
+based on relax2.4 - HIFI processing code separated from rest
+opts.NSlices no longer needed - acqPars.NSlices is calculated from number of dicom files (however, need to specify this manually whens slice oversampling was used)
+uses dcm2niix instead of SPM for dicom conversion
+uses fslmerge instead of spm_file_merge
