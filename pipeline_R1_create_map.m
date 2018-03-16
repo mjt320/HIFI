@@ -39,11 +39,11 @@ if NCores<=1 %non-parallel version (allows fitting selected voxels)
         disp([num2str(i1) '/' num2str(size(signal,1))]); %display progress
     end;
     
-else %parallel verions - fit all voxels
-    disp('Note: all voxels are fitted in parallel mode.');
+else %parallel version - fit all voxels
     delete(gcp('nocreate')); poolobj = parpool('local',NCores);
     slices={1:size(signal,1) 1:size(signal,2) 1:size(signal,3)};
-    parfor(i1=slices{1},NCores) %parallel loop for first dimension
+    parfor i1=slices{1} %parallel loop for first dimension
+        if ~strcmp(opts.slices{1},'all') && isempty(find(opts.slices{1}==i1)); continue; end
         
         %%create temporary variables for parfor look
         T1_temp=nan(volTemplate.dim([2 3]));
@@ -55,7 +55,10 @@ else %parallel verions - fit all voxels
         model_temp=nan([volTemplate.dim([2 3]) sum(isFit)]);
         
         %loop through plane of voxels
-        for i2=slices{2}; for i3=slices{3}; % loop through voxels (only loop through indices to be fitted)
+        for i2=slices{2};
+            if ~strcmp(opts.slices{2},'all') && isempty(find(opts.slices{2}==i2)); continue; end %skip some voxels
+            for i3=slices{3};
+                if ~strcmp(opts.slices{3},'all') && isempty(find(opts.slices{3}==i3)); continue; end %skip some voxels
                 
                 if max(signal(i1,i2,i3,isFit)./opts.scaleFactor(1))<opts.threshold; continue; end %skip voxels that don't pass threshold criterion
                 
