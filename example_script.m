@@ -1,7 +1,7 @@
 clear; close all;
 
 %% set up paths
-procRoot='/ISIS/proc5/mthripp1';
+procRoot='/proc5';
 addpath('/usr/local/spm/spm12');
 addpath([procRoot '/software/relaxometry/HIFI_3a']);
 addpath([procRoot '/software/UTILITIES']);
@@ -19,6 +19,7 @@ opts.slices={'all' 'all' 'all'}; %indicate which voxels to fit (useful for testi
 %opts.NSlices=nan; %specify number of k-space partition lines - if not specified, code will assume this is equal to NSlices (which may be incorrect if oversampling used)
 opts.threshold=50; % the unscaled maximum signal for a voxel (across all acquisitions used for fitting) must be >= this threshold, otherwise it will not be fitted
 opts.NTry=1; %number of fitting attempts with different starting values
+opts.NCores=1; %number of cores to use when fitting data
 opts.dicomExamDir=[pwd '/../../HIFI_test_data/dicom']; %dicom exam dir
 opts.niftiDir='./nifti'; %output dir for raw nifti images
 opts.niftiRegDir='./nifti_reg'; %output dir for co-registered nifti images
