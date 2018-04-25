@@ -1,10 +1,14 @@
 # HIFI
 T1 mapping
-Current version (in progress)
 
-Code to generate T1 maps using the DESPOT1-HIFI method.
+Code to generate T1 maps using the DESPOT1-HIFI or variable flip angle methods.
 
-pipeline_R1_convert requires dcm2niix
+Tested successfully on Siemens VB17 and VE11C data, and on GE HDx15.
 
-pipeline_R1_reg requires FSL flirt
+Please contact the author via email on GitHub page for advice, new functionality etc.
+
+Dependencies:
+dcm2niix
+FSL
+SPM
 
