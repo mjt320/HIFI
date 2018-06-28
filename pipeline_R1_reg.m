@@ -26,6 +26,6 @@ end
 outFileList=[];
 for iSeries=1:size(opts.series,2); outFileList=[outFileList ' ' outputFiles{iSeries} ]; end
 system(['fslmerge -t ' opts.niftiRegDir '/r4D' outFileList]);
-system(['fslchfiletype NIFTI ' opts.niftiRegDir '/r4D'])
+system(['fslchfiletype NIFTI ' opts.niftiRegDir '/r4D']);
 
 end
