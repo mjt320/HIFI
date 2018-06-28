@@ -2,7 +2,7 @@ function pipeline_R1_create_map(opts)
 % fit HIFI/VFA T1 mapping data
 
 load([opts.niftiDir filesep 'acqPars'],'acqPars'); %load acquisition parameters
-% acqPars=acqPars;
+acqPars=acqPars; %necessary for par loop to work
 
 mkdir(opts.mapDir); delete([opts.mapDir filesep '*.*']); %create output dir/delete contents
 
@@ -13,7 +13,7 @@ if any(opts.scaleFactor~=1)
     for n=1:size(signal,4); signal(:,:,:,n)=opts.scaleFactor(n)*signal(:,:,:,n); end %scale signal
 end
 
-if length(opts.opts.isIR) ~= length(opts.opts.fit) % check opts consistency
+if length(opts.isIR) ~= length(opts.fit) % check opts consistency
     error('opts.isIR and opts.fit are of different size')
 else
     isIR=logical(opts.isIR) & logical(opts.fit); %images that are IR and should be fitted
