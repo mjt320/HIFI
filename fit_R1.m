@@ -1,4 +1,4 @@
-function [T1,S0,k,modelFit,R1_LCI,R1_UCI,RSq,exitFlag]=fit_R1(S,isIR,isFit,TR_s,FA_rad,TI_s,PECentre,NReadout,NTry)
+function [T1,S0,k,modelFit,R1_LCI,R1_UCI,RSq,exitFlag]=fit_R1(S,isFitIR,isFit,TR_s,FA_rad,TI_s,PECentre,NReadout,NTry)
 %fit T1
 
 tic;
@@ -7,10 +7,10 @@ y=S(isFit); %select only parts of signal to be fitted
 
 T1=nan; S0=nan; modelFit=nan(1,sum(isFit)); k=nan; RSq=nan; model=nan(1,sum(isFit)); R1_LCI=nan; R1_UCI=nan; exitFlag=nan; %initialise variables
 
-isSPGR=~isIR; %determine which signals are SPGR
-if sum(isIR)>0; isHIFI=1; else isHIFI=0; end %if there are no IR- scans, this is variable flip angle (VFA) not HIFI (and vice versa)
+isFitSPGR=~logical(isFitIR) & logical(isFit); %images that are SPGR and should be fitted
+if sum(isFitIR)>0; isHIFI=1; else isHIFI=0; end %if there are no IR- scans, this is variable flip angle (VFA) not HIFI (and vice versa)
 NScans=size(isFit,2);
-NIRScans=sum(isIR);
+NFitIRScans=sum(isFitIR);
 
 x0=[nan nan]; xLower=[0 0]; xUpper=[inf inf]; %set initial parameters and constraints (T1, S0, k)
 if isHIFI; x0(3)=1; xLower(3)=0; xUpper(3)=inf; end
@@ -19,14 +19,14 @@ if isHIFI; x0(3)=1; xLower(3)=0; xUpper(3)=inf; end
     function s=calcSignal(c,t) % c(1)=T1 c(2)=S0 c(3)=k
         if size(c,2)==2; c(3)=1; end
         s=nan(1,NScans);
-        s(isSPGR)=abs(SPGRFormula(c(2),c(1),TR_s(isSPGR),c(3)*FA_rad(isSPGR))); %calculate SPGR signals
-        s(isIR)=abs(deichmannFormula(c(2),c(1),TR_s(isIR),TI_s(isIR),zeros(NIRScans,1),pi*ones(NIRScans,1),c(3)*FA_rad(isIR),NReadout(isIR),PECentre(isIR))); %calculate IR-SPGR signals
+        s(isFitSPGR)=abs(SPGRFormula(c(2),c(1),TR_s(isFitSPGR),c(3)*FA_rad(isFitSPGR))); %calculate SPGR signals
+        s(isFitIR)=abs(deichmannFormula(c(2),c(1),TR_s(isFitIR),TI_s(isFitIR),zeros(NFitIRScans,1),pi*ones(NFitIRScans,1),c(3)*FA_rad(isFitIR),NReadout(isFitIR),PECentre(isFitIR))); %calculate IR-SPGR signals
         s=s(isFit); %output only the signals to be fitted
     end
 signalFunction=@calcSignal;
 
 %quickly estimate initial parameters based on first and last SPGR scans
-n1=min(find(isSPGR)); n2=max(find(isSPGR)); TR_2FA=TR_s(n1); a1=FA_rad(n1); a2=FA_rad(n2);
+n1=min(find(isFitSPGR)); n2=max(find(isFitSPGR)); TR_2FA=TR_s(n1); a1=FA_rad(n1); a2=FA_rad(n2);
 S1=S(n1); S2=S(n2);
 SR=S1/S2;
 x0(1)=TR_2FA/log((SR*sin(a2)*cos(a1) - sin(a1)*cos(a2))/(SR*sin(a2) - sin(a1))); %initial T1 guess
