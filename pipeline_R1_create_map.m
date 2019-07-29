@@ -2,7 +2,7 @@ function pipeline_R1_create_map(opts)
 % fit HIFI/VFA T1 mapping data
 
 load([opts.niftiDir filesep 'acqPars'],'acqPars'); %load acquisition parameters
-acqPars=acqPars; %necessary for par loop to work
+acqPars=acqPars; %necessary for parfor loop to work
 
 mkdir(opts.mapDir); delete([opts.mapDir filesep '*.*']); %create output dir/delete contents
 
@@ -21,13 +21,12 @@ else
 end
 
 %% initialise output arrays
-
 volTemplate =spm_vol([opts.niftiDir filesep 'series' num2str(opts.series(1),'%02d') '.nii']); %use this header as template for 3D output files
 T1     = nan(volTemplate.dim);
 S0     = nan(volTemplate.dim); 
 k      = nan(volTemplate.dim); 
 RSq    = nan(volTemplate.dim); 
-model  = nan([volTemplate.dim sum(isFit)]); %initialise output arrays
+model  = nan(size(signal));
 R1_LCI = nan(volTemplate.dim); 
 R1_UCI = nan(volTemplate.dim);
 
@@ -45,7 +44,7 @@ if NCores<=1 % non-parallel version (allows fitting selected voxels)
                 if max(signal(i1,i2,i3,isFit)./opts.scaleFactor(1))<opts.threshold; continue; end %skip voxels that don't pass threshold criterion
                 
                 % run the fitting kernel
-                [T1(i1,i2,i3),S0(i1,i2,i3),k(i1,i2,i3),model(i1,i2,i3,:),R1_LCI(i1,i2,i3),R1_UCI(i1,i2,i3),RSq_temp(i1,i2,i3),exitFlag]=...
+                [T1(i1,i2,i3),S0(i1,i2,i3),k(i1,i2,i3),model(i1,i2,i3,isFit),R1_LCI(i1,i2,i3),R1_UCI(i1,i2,i3),RSq_temp(i1,i2,i3),exitFlag]=...
                     fit_R1(squeeze(signal(i1,i2,i3,:)).',isIR,isFit,acqPars.TR,acqPars.FA,acqPars.TI,acqPars.PECentre,acqPars.NReadout,opts.NTry);
                 
             end
@@ -91,39 +90,20 @@ else % parallel version - fit all voxels
         R1_LCI(i1,:,:)  = R1_LCI_temp;
         R1_UCI(i1,:,:)  = R1_UCI_temp;
         RSq(i1,:,:)     = RSq_temp;
-        model(i1,:,:,:) = model_temp;
+        model(i1,:,:,isFit) = model_temp;
         disp([num2str(i1) filesep num2str(size(slices{1},2))]); %display progress
     end  
 end
 
 
 %% write output images
-iEchoFit=0;
-for iEcho=1:size(opts.series,2)
-    volModel=volTemplate; volModel.dt=[16 0]; volModel.fname=[opts.mapDir filesep 'model_series_' num2str(iEcho,'%02d') '.nii'];
-    volSignal=volTemplate; volSignal.dt=[16 0]; volSignal.fname=[opts.mapDir filesep 'signal_series_' num2str(iEcho,'%02d') '.nii'];
-    if isFit(iEcho); %if this echo was used in fitting then write values to files
-        iEchoFit=iEchoFit+1;
-        spm_write_vol(volModel,model(:,:,:,iEchoFit)); %NB model array only includes echoes used for fitting
-        spm_write_vol(volSignal,signal(:,:,:,iEcho));
-    else %if echo not used in fitting then write nans to files
-        spm_write_vol(volModel,nan(volTemplate.dim));
-        spm_write_vol(volSignal,nan(volTemplate.dim));
-    end
-end
-spm_file_merge(sort(getMultipleFilePaths([opts.mapDir filesep 'model_series_*.nii'])),[opts.mapDir filesep 'model.nii'],0);
-spm_file_merge(sort(getMultipleFilePaths([opts.mapDir filesep 'signal_series_*.nii'])),[opts.mapDir filesep 'signal.nii'],0);
-delete([opts.mapDir filesep 'model_series_*.nii']);
-delete([opts.mapDir filesep 'signal_series_*.nii']);
-
-paramNames={'T1' 'S0' 'k' 'RSq' 'R1' 'R1_LCI' 'R1_UCI'};
-outputs={T1 S0 k RSq 1./T1 R1_LCI R1_UCI};
+signal_output=nan(size(signal));
+signal_output(:,:,:,isFit)=signal(:,:,:,isFit);
+paramNames={'model' 'signal' 'T1' 'S0' 'k' 'RSq' 'R1' 'R1_LCI' 'R1_UCI'};
+outputs={model signal_output T1 S0 k RSq 1./T1 R1_LCI R1_UCI};
 
 for iOutput=1:size(outputs,2)
-    volOutput=volTemplate;
-    volOutput.fname=[opts.mapDir '/' paramNames{iOutput} '.nii'];
-    volOutput.dt=[16 0];
-    spm_write_vol(volOutput,outputs{iOutput});
+    SPMWrite4D(volTemplate,outputs{iOutput},opts.mapDir,[paramNames{iOutput}],16);
 end
 
 spm_file_merge({[opts.mapDir filesep 'R1.nii'] [opts.mapDir filesep 'R1_LCI.nii'] [opts.mapDir filesep 'R1_UCI.nii']},[opts.mapDir filesep 'R1_CI'],0);
