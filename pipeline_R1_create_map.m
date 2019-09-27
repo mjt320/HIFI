@@ -45,7 +45,7 @@ if NCores<=1 % non-parallel version (allows fitting selected voxels)
                 
                 % run the fitting kernel
                 [T1(i1,i2,i3),S0(i1,i2,i3),k(i1,i2,i3),model(i1,i2,i3,isFit),R1_LCI(i1,i2,i3),R1_UCI(i1,i2,i3),RSq_temp(i1,i2,i3),exitFlag]=...
-                    fit_R1(squeeze(signal(i1,i2,i3,:)).',isIR,isFit,acqPars.TR,acqPars.FA,acqPars.TI,acqPars.PECentre,acqPars.NReadout,opts.NTry);
+                    fit_R1(squeeze(signal(i1,i2,i3,:)).',isIR,isFit,acqPars.TR.',acqPars.FA.',acqPars.TI.',acqPars.PECentre.',acqPars.NReadout.',opts.NTry);
                 
             end
         end
@@ -78,7 +78,7 @@ else % parallel version - fit all voxels
                 
                 % run the fitting kernel
                 [T1_temp(i2,i3),S0_temp(i2,i3),k_temp(i2,i3),model_temp(i2,i3,:),R1_LCI_temp(i2,i3),R1_UCI_temp(i2,i3),RSq_temp(i2,i3),exitFlag]=...
-                    fit_R1(squeeze(signal(i1,i2,i3,:)).',isIR,isFit,acqPars.TR,acqPars.FA,acqPars.TI,acqPars.PECentre,acqPars.NReadout,opts.NTry);
+                    fit_R1(squeeze(signal(i1,i2,i3,:)).',isIR,isFit,acqPars.TR.',acqPars.FA.',acqPars.TI.',acqPars.PECentre.',acqPars.NReadout.',opts.NTry);
                 
             end
         end

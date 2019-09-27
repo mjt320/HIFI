@@ -33,12 +33,15 @@ function [T1_s,S0,k,modelFit,R1_LCI,R1_UCI,RSq,exitFlag]=fit_R1(S,isIR,isFit,TR_
 
 tic;
 
+isIR=logical(isIR);
+isFit=logical(isFit);
+
 y=S(isFit); %select only parts of signal to be fitted
 
 T1_s=nan; S0=nan; modelFit=nan(1,sum(isFit)); k=nan; RSq=nan; model=nan(1,sum(isFit)); R1_LCI=nan; R1_UCI=nan; exitFlag=nan; %initialise variables
 
-isFitIR=logical(isIR) & logical(isFit); %images that are IR-SPGR and should be fitted
-isFitSPGR=~logical(isIR) & logical(isFit); %images that are SPGR and should be fitted
+isFitIR=isIR & isFit; %images that are IR-SPGR and should be fitted
+isFitSPGR=~isIR & isFit; %images that are SPGR and should be fitted
 if sum(isFitIR)>0; isHIFI=1; else isHIFI=0; end %if there are no IR- scans, this is variable flip angle (VFA) not HIFI (and vice versa)
 NScans=size(isFit,2);
 NFitIRScans=sum(isFitIR);
@@ -51,7 +54,7 @@ if isHIFI; x0(3)=1; xLower(3)=0; xUpper(3)=inf; end
         if size(c,2)==2; c(3)=1; end
         s=nan(1,NScans);
         s(isFitSPGR)=abs(SPGRFormula(c(2),c(1),TR_s(isFitSPGR),c(3)*FA_rad(isFitSPGR))); %calculate SPGR signals
-        s(isFitIR)=abs(deichmannFormula(c(2),c(1),TR_s(isFitIR),TI_s(isFitIR),zeros(NFitIRScans,1),pi*ones(NFitIRScans,1),c(3)*FA_rad(isFitIR),NReadout(isFitIR),PECentre(isFitIR))); %calculate IR-SPGR signals
+        s(isFitIR)=abs(deichmannFormula(c(2),c(1),TR_s(isFitIR),TI_s(isFitIR),zeros(1,NFitIRScans),pi*ones(1,NFitIRScans),c(3)*FA_rad(isFitIR),NReadout(isFitIR),PECentre(isFitIR))); %calculate IR-SPGR signals
         s=s(isFit); %output only the signals to be fitted
     end
 signalFunction=@calcSignal;
