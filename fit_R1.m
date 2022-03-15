@@ -1,4 +1,4 @@
-function [T1_s,S0,k,modelFit,R1_LCI,R1_UCI,RSq,exitFlag]=fit_R1(S,isIR,isFit,TR_s,FA_rad,TI_s,PECentre,NReadout,NTry)
+function [T1_s,S0,k,modelFit,RSq,exitFlag]=fit_R1(S,isIR,isFit,TR_s,FA_rad,TI_s,PECentre,NReadout,NTry)
 %fits a series of (IR-)SPGR scans to determine the T1, S0 and k values
 %if there are no IR-SPGR scans this fits variable flip angle (VFA) data
 %if there are IR-SPGR scans this fits DESPOT1-HIFI data
@@ -88,8 +88,8 @@ if exitFlags(bestIdx)>0 %assign best results to output variables
     T1_s=x(bestIdx,1); S0=x(bestIdx,2);
     if isHIFI; k=x(bestIdx,3); end
     modelFit=calcSignal(x(bestIdx,:));
-    ci = nlparci(x(bestIdx,:),resid{bestIdx},'jacobian',jac{bestIdx}); %confidence intervals
-    R1_LCI=1/ci(1,2); R1_UCI=1/ci(1,1);
+    %ci = nlparci(x(bestIdx,:),resid{bestIdx},'jacobian',jac{bestIdx}); %confidence intervals
+    %R1_LCI=1/ci(1,2); R1_UCI=1/ci(1,1);
     exitFlag=exitFlags(bestIdx);
 end
 

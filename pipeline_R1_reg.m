@@ -17,8 +17,12 @@ for n=1:size(opts.series,2)
     outputFiles{n}=[opts.niftiRegDir '/rSeries' num2str(opts.series(n),'%02d') '.nii'];
     matFile=[opts.niftiRegDir '/series' num2str(opts.series(n),'%02d') '.mat'];
     
-    system([ 'flirt -in ' inputFile ' -ref ' refFile ' -out ' outputFiles{n} ' -omat ' matFile ' -dof 6 -cost normmi']); %FLIRT
-    system([ 'fslchfiletype NIFTI ' outputFiles{n}]); %change file type
+    if isfield(opts,'no_reg') && opts.no_reg==1
+        copyfile(inputFile, outputFiles{n})
+    else
+        system([ 'flirt -in ' inputFile ' -ref ' refFile ' -out ' outputFiles{n} ' -omat ' matFile ' -dof 6 -cost normmi']); %FLIRT
+        system([ 'fslchfiletype NIFTI ' outputFiles{n}]); %change file type
+    end
 end
 
 
